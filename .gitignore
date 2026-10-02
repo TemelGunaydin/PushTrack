@@ -1,0 +1,7 @@
+/target/
+__pycache__/
+.build/
+.swiftpm/
+.DS_Store
+.pi/
+assets/pushtrack-icon.json
