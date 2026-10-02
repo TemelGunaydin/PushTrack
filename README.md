@@ -114,7 +114,7 @@ Without explicit paths, PushTrack uses saved folders. If none are saved, it scan
 
 Folder settings are stored in `$XDG_CONFIG_HOME/pushtrack/config.json`, or `~/.config/pushtrack/config.json` when `XDG_CONFIG_HOME` is unset or not absolute. Writes are atomic; malformed configuration is reported rather than overwritten.
 
-**Upgrading from Swift:** existing folder settings are read without conversion. The earlier prototype is preserved under [`archive/swift/`](archive/swift/) and is not part of the active build. Re-run the installer to replace an older installed executable.
+**Updating:** re-run the installer to replace an older executable. Existing saved-folder settings remain compatible and do not need conversion.
 
 ## Reading Git status
 

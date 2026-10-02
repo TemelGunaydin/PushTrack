@@ -156,7 +156,7 @@ pub fn normalize(path: &Path) -> Result<PathBuf> {
 mod tests {
     use super::*;
     #[test]
-    fn reads_swift_config_and_preserves_add_remove_behavior() -> Result<()> {
+    fn reads_existing_config_and_preserves_add_remove_behavior() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let first = temp.path().join("First Project");
         let second = temp.path().join("second");
