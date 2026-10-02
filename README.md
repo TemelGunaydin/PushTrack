@@ -14,6 +14,10 @@ Track repositories across multiple folders, spot unpushed commits, and inspect u
 
 ## The dashboard
 
+![PushTrack dashboard showing Git status across seven projects, with a selected repository's branch, upstream verification, and working-tree details](assets/dashboard.png)
+
+*Actual terminal output using sample local repositories.*
+
 ```bash
 pushtrack --fetch --watch
 ```
