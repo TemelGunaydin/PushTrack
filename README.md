@@ -134,7 +134,9 @@ Working-tree counts are separate from branch status:
 - `?`: untracked files, excluding ignored files.
 - `U`: merge conflicts.
 
-One file can contribute to both `S` and `M`. A branch can be synchronized while still having uncommitted changes. “Need attention” includes repository issues and scan warnings; switch to Details to read warnings.
+Repositories with uncommitted files prominently show **`● N uncommitted`** in amber (red for conflicts), independently of their branch's push status. `In sync` only means the committed history matches the upstream; it does **not** mean the working tree is clean.
+
+One file can contribute to both `S` and `M`, but is counted once in the uncommitted total. “Uncommitted” in the summary cards counts repositories with changes. “Need attention” includes uncommitted work, repository issues, and scan warnings; switch to Details to read warnings.
 
 ### Cached information is not remote verification
 

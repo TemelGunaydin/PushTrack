@@ -158,9 +158,28 @@ fn print_reports(reports: &[Report], warnings: &[String], color: bool, fetch: bo
                     .to_string_lossy()
             )
         )?;
+        let worktree = report
+            .snapshot
+            .as_ref()
+            .filter(|s| s.changed > 0)
+            .map(|snapshot| {
+                let label = snapshot.worktree_status();
+                let tone = if snapshot.conflicts > 0 {
+                    Color::Red
+                } else {
+                    Color::Yellow
+                };
+                let label = if color {
+                    label.with(tone).to_string()
+                } else {
+                    label
+                };
+                format!("{label} · ")
+            })
+            .unwrap_or_default();
         writeln!(
             output,
-            "    {status} · {}",
+            "    {worktree}{status} · {}",
             report
                 .snapshot
                 .as_ref()

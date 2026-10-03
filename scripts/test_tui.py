@@ -124,6 +124,13 @@ with tempfile.TemporaryDirectory(prefix="pushtrack-tui-") as temporary:
         session.wait(lambda text: "Last scan" in text and "atlas-api" in text)
         assert b"\x1b[38;2;" in session.raw, "Expected true-color theme"
         Path("/tmp/pushtrack-tui-wide.txt").write_text(session.text)
+        # Branch history stays synchronized, but the working tree is dirty.
+        (paths[0] / "initial.txt").write_text("modified, not committed\n")
+        (paths[0] / "staged.txt").write_text("staged, not committed\n")
+        git(paths[0], "add", "staged.txt")
+        (paths[0] / "untracked.txt").write_text("not staged\n")
+        session.keys(b"r")
+        session.wait(lambda text: "3 uncommitted" in text and "In sync" in text and "Last scan" in text)
         session.keys(b"\x1b[B")
         session.wait(lambda text: "2 / 35" in text and "1 to push" in text)
         session.keys(b"\x1b[F")
@@ -137,6 +144,11 @@ with tempfile.TemporaryDirectory(prefix="pushtrack-tui-") as temporary:
         time.sleep(0.2)
         session.pump()
         Path("/tmp/pushtrack-tui-narrow.txt").write_text(session.text)
+        assert "3 uncommitted" in session.text
+        session.resize(60, 18)
+        session.wait(lambda text: "3 uncommitted" in text and "In sync" in text)
+        session.resize(80, 24)
+        session.wait(lambda text: "DETAILS" in text and "q quit" in text)
         session.keys(b"\x1b[F")
         session.wait(lambda text: "35 / 35" in text)
         (paths[-1] / "first.txt").write_text("new commit\n")
@@ -150,7 +162,7 @@ with tempfile.TemporaryDirectory(prefix="pushtrack-tui-") as temporary:
         assert session.raw.count(b"\x1b[?1049h") == 1
     finally:
         session.close()
-    print("PASS: alternate screen, arrows, paging, stable selection, resize, detail scrolling, refresh, q, terminal restoration")
+    print("PASS: dirty-but-synchronized worktree is visible at wide, narrow, and minimum sizes; navigation, refresh, q, terminal restoration")
 
     for key, sig, expected in [(b"\x03", None, 130), (None, signal.SIGTERM, 143), (None, signal.SIGINT, 130)]:
         session = Session([paths[0], "--watch", "--color", "never"], env, 80, 24)

@@ -78,6 +78,53 @@ fn saved_folder_commands_are_english_and_compatible() {
 }
 
 #[test]
+fn uncommitted_work_is_explicit_in_one_off_reports() -> anyhow::Result<()> {
+    let root = tempfile::tempdir()?;
+    let repo = root.path().join("dirty-repo");
+    let remote = root.path().join("remote.git");
+    let git = pushtrack::git::Git::default();
+    git.checked(
+        root.path(),
+        &["init", "--initial-branch=main", repo.to_str().unwrap()],
+    )?;
+    for (key, value) in [
+        ("user.name", "Tests"),
+        ("user.email", "test@example.invalid"),
+        ("core.hooksPath", "/dev/null"),
+        ("commit.gpgsign", "false"),
+    ] {
+        git.checked(&repo, &["config", key, value])?;
+    }
+    fs::write(repo.join("tracked.txt"), "initial\n")?;
+    git.checked(&repo, &["add", "tracked.txt"])?;
+    git.checked(&repo, &["commit", "-m", "Initial commit"])?;
+    git.checked(
+        root.path(),
+        &[
+            "init",
+            "--bare",
+            "--initial-branch=main",
+            remote.to_str().unwrap(),
+        ],
+    )?;
+    git.checked(
+        &repo,
+        &["remote", "add", "origin", remote.to_str().unwrap()],
+    )?;
+    git.checked(&repo, &["push", "-u", "origin", "main"])?;
+    fs::write(repo.join("tracked.txt"), "not committed\n")?;
+    for color in ["never", "always"] {
+        let result = cli(root.path(), &[repo.to_str().unwrap(), "--color", color]);
+        assert!(result.status.success());
+        assert!(text(&result).contains("1 uncommitted"));
+        assert!(text(&result).contains("In sync"));
+        assert!(text(&result).contains("M:1"));
+        assert!(text(&result).contains("0 to push"));
+    }
+    Ok(())
+}
+
+#[test]
 fn watch_requires_interactive_input_and_output() {
     let root = tempfile::tempdir().unwrap();
     let result = cli(root.path(), &["--watch"]);

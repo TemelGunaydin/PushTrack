@@ -63,6 +63,14 @@ impl Snapshot {
         Ok(result)
     }
 
+    pub fn worktree_status(&self) -> String {
+        if self.changed > 0 {
+            format!("● {} uncommitted", self.changed)
+        } else {
+            "✓ Working tree clean".into()
+        }
+    }
+
     pub fn changes(&self) -> String {
         if self.changed == 0 {
             return "clean".into();

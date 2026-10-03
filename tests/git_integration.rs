@@ -109,6 +109,54 @@ fn unborn_no_upstream_and_unpushed_commit_lifecycle() -> Result<()> {
 }
 
 #[test]
+fn synced_branch_still_detects_staged_modified_and_untracked_work() -> Result<()> {
+    let f = Fixture::new()?;
+    f.setup_remote()?;
+    fs::write(f.local.join("initial.txt"), "not committed\n")?;
+    fs::write(f.local.join("staged.txt"), "staged, not committed\n")?;
+    f.git.checked(&f.local, &["add", "staged.txt"])?;
+    fs::write(f.local.join("untracked.txt"), "not staged\n")?;
+    let head = f.git.checked(&f.local, &["rev-parse", "HEAD"])?;
+    let index = fs::read(f.local.join(".git/index"))?;
+    for fetch in [false, true] {
+        let report = f.git.inspect(&f.local, fetch);
+        assert_eq!(
+            report.state(),
+            State::Synced,
+            "History and working-tree state are independent"
+        );
+        assert!(
+            !report.needs_push(),
+            "Uncommitted files are not unpushed commits"
+        );
+        let snapshot = report.snapshot.unwrap();
+        assert_eq!(
+            (
+                snapshot.staged,
+                snapshot.modified,
+                snapshot.untracked,
+                snapshot.changed
+            ),
+            (1, 1, 1, 3)
+        );
+        assert_eq!(snapshot.worktree_status(), "● 3 uncommitted");
+    }
+    assert_eq!(f.git.checked(&f.local, &["rev-parse", "HEAD"])?, head);
+    assert_eq!(fs::read(f.local.join(".git/index"))?, index);
+    f.git.checked(&f.local, &["add", "--all"])?;
+    f.git
+        .checked(&f.local, &["commit", "-m", "Commit local work"])?;
+    let committed = f.git.inspect(&f.local, false);
+    assert_eq!(committed.state(), State::Ahead);
+    assert!(committed.needs_push());
+    assert_eq!(
+        committed.snapshot.unwrap().worktree_status(),
+        "✓ Working tree clean"
+    );
+    Ok(())
+}
+
+#[test]
 fn stale_cache_behind_diverged_and_worktree_preservation() -> Result<()> {
     let f = Fixture::new()?;
     f.setup_remote()?;

@@ -1,5 +1,5 @@
 use super::{App, Focus};
-use crate::model::{State, clock, safe};
+use crate::model::{Snapshot, State, clock, safe};
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
@@ -54,6 +54,15 @@ impl Theme {
             _ => self.amber,
         }
     }
+    fn worktree(self, snapshot: &Snapshot) -> Color {
+        if snapshot.conflicts > 0 {
+            self.red
+        } else if snapshot.changed > 0 {
+            self.amber
+        } else {
+            self.mint
+        }
+    }
     fn block(self, title: &'static str, focused: bool) -> Block<'static> {
         Block::default()
             .borders(Borders::ALL)
@@ -86,12 +95,14 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         frame.render_widget(Paragraph::new(text), area);
         return;
     }
+    // Keep room for a complete two-line project row in short terminals.
+    let short = area.height < 24;
     let [header, metrics, spacer, body, footer] = Layout::vertical([
+        Constraint::Length(if short { 2 } else { 3 }),
         Constraint::Length(3),
-        Constraint::Length(3),
-        Constraint::Length(1),
+        Constraint::Length(if short { 0 } else { 1 }),
         Constraint::Min(5),
-        Constraint::Length(3),
+        Constraint::Length(if short { 2 } else { 3 }),
     ])
     .margin(1)
     .areas(area);
@@ -162,7 +173,7 @@ fn metrics_view(frame: &mut Frame, app: &App, area: Rect, theme: Theme) {
                     | State::MissingRef
                     | State::NoUpstream
                     | State::Detached
-            ) || r.snapshot.as_ref().is_some_and(|s| s.conflicts > 0)
+            ) || r.snapshot.as_ref().is_some_and(|s| s.changed > 0)
         })
         .count()
         + app.warnings.len();
@@ -181,7 +192,7 @@ fn metrics_view(frame: &mut Frame, app: &App, area: Rect, theme: Theme) {
             if compact {
                 " CHANGES "
             } else {
-                " WORK IN PROGRESS "
+                " UNCOMMITTED "
             },
             dirty,
             theme.blue,
@@ -250,15 +261,30 @@ fn projects_view(frame: &mut Frame, app: &mut App, area: Rect, theme: Theme) {
                 ),
                 None => ("· Waiting for check".into(), theme.muted, String::new()),
             };
+            let mut status_line = vec![];
+            if let Some(snapshot) = entry.report.as_ref().and_then(|r| r.snapshot.as_ref())
+                && snapshot.changed > 0
+            {
+                status_line.push(Span::styled(
+                    format!(" {}", snapshot.worktree_status()),
+                    Style::default().fg(theme.worktree(snapshot)).bold(),
+                ));
+                status_line.push(Span::styled(" ·", Style::default().fg(theme.muted)));
+            }
+            status_line.push(Span::styled(
+                format!(" {status}"),
+                Style::default().fg(color),
+            ));
+            status_line.push(Span::styled(
+                format!("  {changes}"),
+                Style::default().fg(theme.muted),
+            ));
             ListItem::new(vec![
                 Line::from(vec![
                     Span::styled(format!(" {name}"), Style::default().fg(theme.text).bold()),
                     Span::styled(format!("  {branch}"), Style::default().fg(theme.muted)),
                 ]),
-                Line::from(vec![
-                    Span::styled(format!(" {status}"), Style::default().fg(color)),
-                    Span::styled(format!("  {changes}"), Style::default().fg(theme.muted)),
-                ]),
+                Line::from(status_line),
             ])
         })
         .collect();
@@ -303,6 +329,12 @@ fn details_view(frame: &mut Frame, app: &mut App, area: Rect, theme: Theme) {
             Style::default().fg(theme.text).bold(),
         ));
         if let Some(report) = &entry.report {
+            if let Some(snapshot) = &report.snapshot {
+                lines.push(Line::styled(
+                    snapshot.worktree_status(),
+                    Style::default().fg(theme.worktree(snapshot)).bold(),
+                ));
+            }
             lines.push(Line::styled(
                 report.status(),
                 Style::default().fg(theme.status(report.state())).bold(),
@@ -478,6 +510,59 @@ mod tests {
                 assert!(text.contains("q quit"));
                 assert!(text.contains("PROJECTS"));
             }
+        }
+    }
+
+    #[test]
+    fn synced_branch_with_uncommitted_files_is_prominent_at_every_supported_width() {
+        for (width, height) in [(140, 36), (80, 24), (60, 18)] {
+            let mut app = App::new(false, true, Duration::from_secs(10));
+            let path = "/projects/dirty-repo".into();
+            app.receive(Update::Started {
+                paths: vec![path],
+                warnings: vec![],
+            });
+            app.receive(Update::Report(Report {
+                path: app.entries[0].path.clone(),
+                snapshot: Some(Snapshot {
+                    branch: "main".into(),
+                    oid: "abc".into(),
+                    upstream: Some("origin/main".into()),
+                    ahead: Some(0),
+                    behind: Some(0),
+                    staged: 1,
+                    modified: 1,
+                    untracked: 1,
+                    changed: 3,
+                    ..Snapshot::default()
+                }),
+                verification: Verification::Cached,
+                error: None,
+            }));
+            assert_eq!(
+                app.entries[0].report.as_ref().unwrap().state(),
+                State::Synced
+            );
+            let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            let buffer = terminal.backend().buffer();
+            let text: String = buffer.content.iter().map(|c| c.symbol()).collect();
+            assert!(
+                text.contains("3 uncommitted"),
+                "Missing dirty-worktree warning at {width}x{height}: {text}"
+            );
+            assert!(
+                text.contains("In sync"),
+                "Branch synchronization should still be visible"
+            );
+            let amber = Theme::new(true).amber;
+            assert!(
+                buffer
+                    .content
+                    .iter()
+                    .any(|c| c.symbol() == "3" && c.fg == amber),
+                "Dirty work must not look green"
+            );
         }
     }
 
