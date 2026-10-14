@@ -1,0 +1,5 @@
+# Separate data/tokenizer environment: no torch, model weights, or remote scripts.
+--index-url https://pypi.org/simple
+pyarrow==25.0.1
+tokenizers==0.23.2
+transformers==5.18.0

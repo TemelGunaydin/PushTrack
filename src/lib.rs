@@ -1,7 +1,10 @@
+pub mod assets;
 pub mod cli;
 pub mod config;
 pub mod discovery;
+pub mod draft;
 pub mod git;
 pub mod model;
+mod process;
 pub mod scan;
 pub mod ui;

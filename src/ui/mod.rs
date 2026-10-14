@@ -1,4 +1,8 @@
+mod draft;
+mod models;
 mod render;
+pub use draft::{DraftDialog, DraftPhase};
+pub use models::{ModelManager, ModelPhase};
 mod terminal;
 pub use render::draw;
 pub use terminal::watch;
@@ -27,6 +31,14 @@ pub enum Focus {
 pub enum Action {
     None,
     Refresh,
+    GenerateDraft,
+    ExpandDraft,
+    OpenModels,
+    CloseModels,
+    DownloadModel,
+    SelectModel,
+    CloseDraft,
+    ReviewDraft,
     Quit(i32),
 }
 
@@ -46,6 +58,8 @@ pub struct App {
     pub interval: Duration,
     pub fetch: bool,
     pub color: bool,
+    pub draft: Option<DraftDialog>,
+    pub models: Option<ModelManager>,
 }
 
 impl App {
@@ -66,6 +80,8 @@ impl App {
             interval,
             fetch,
             color,
+            draft: None,
+            models: None,
         }
     }
 
@@ -125,7 +141,15 @@ impl App {
         if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
             return Action::Quit(130);
         }
+        if let Some(models) = self.models.as_mut() {
+            return models.key(key);
+        }
+        if let Some(draft) = self.draft.as_mut() {
+            return draft.key(key);
+        }
         match key.code {
+            KeyCode::Char('m' | 'M') => return Action::GenerateDraft,
+            KeyCode::Char('a' | 'A') => return Action::OpenModels,
             KeyCode::Char('q' | 'Q') => return Action::Quit(0),
             KeyCode::Char('r' | 'R') => return Action::Refresh,
             KeyCode::Tab | KeyCode::BackTab => {

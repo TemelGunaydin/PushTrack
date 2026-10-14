@@ -1,0 +1,72 @@
+{
+  "version": "qwen35-4b-local-draft-prototype-0001",
+  "usage_status": "verified_editable_draft_prototype_not_production_promoted",
+  "model": {
+    "base_repository": "Qwen/Qwen3.5-4B",
+    "base_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+    "quantization_repository": "unsloth/Qwen3.5-4B-GGUF",
+    "quantization_revision": "e87f176479d0855a907a41277aca2f8ee7a09523",
+    "quantization_publisher": "Unsloth, not official Qwen GGUF",
+    "filename": "Qwen3.5-4B-Q4_K_M.gguf",
+    "bytes": 2740937888,
+    "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+    "license": "Apache-2.0",
+    "license_sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a"
+  },
+  "runtime": {
+    "repository": "ggml-org/llama.cpp",
+    "revision": "d81235049384534c167caea52b85a694f6103d14",
+    "tag": "b11429",
+    "license": "MIT",
+    "execution": "local CPU only, ephemeral loopback process",
+    "threads": 2,
+    "gpu_layers": 0,
+    "thinking": "off",
+    "tools_agents_and_multimodal_projection": "disabled"
+  },
+  "input": {
+    "scope": "complete selected unified Git diff supplied on stdin",
+    "context_tokens": 4096,
+    "maximum_output_tokens": 192,
+    "maximum_diff_bytes": 4194304,
+    "larger_context_choices": [8192, 16384, 32768, 65536, 131072, 262144],
+    "larger_context_requires_explicit_confirmation": true,
+    "long_context_quality_and_performance_established": false,
+    "source_literal_token_boundaries": "all33 frozen registered spellings split after opening '<'; no source character changes, zero special source IDs, exact native template/roundtrip and marker-free legacy-ID equality required",
+    "maximum_combined_source_chunks": 128,
+    "source_preparation_seconds": 60,
+    "total_owned_job_seconds": 300,
+    "startup_upper_bound_seconds": 120,
+    "completion_timeout_policy": "remaining total job budget, not an independent120s limit; no automatic retry",
+    "literal_input_generation_verified": false,
+    "literal_token_candidate_installed": true,
+    "silent_truncation_or_file_omission": false,
+    "remote_inference": false
+  },
+  "output": {
+    "format": "one English subject, at most 72 characters",
+    "internal_edit_summary": "not displayed, not a truth certificate",
+    "user_review_and_editing_required": true,
+    "automatic_git_operations": false
+  },
+  "evidence": {
+    "quality_run": "local-subject-0010",
+    "historical_quality_context_tokens": 4096,
+    "historical_quality_maximum_diff_bytes": 262144,
+    "capacity_mechanics": "experiments/0027-draft-capacity.md; actual baseline4096 tokenizer-only proof, no large-context completion or new semantic promotion",
+    "literal_token_mechanics": "experiments/0030-lossless-literal-token-boundaries.md;44 synthetic native4096 token-only cases, zero33special source IDs, four legacy marker-free ID matches; no literal semantic promotion, private-scope measurement or CLI replacement",
+    "literal_input_generation_probe": "experiments/0031-literal-input-generation-probe.md; three predeclared small4096 synthetic completions, two usable accepted drafts (one interpretation-sensitive) and one unchanged internal-summary literal-marker refusal; no retry, gate change, private scope, larger context or deployment",
+    "literal_token_cli_installation": "experiments/0032-literal-token-cli-installation.md; user-approved offline locked installation, exact candidate/embedded connector identities, full installed-binary fake-transport PTY and protected-state preservation; internal-summary refusal unchanged, no installation-time real inference or semantic promotion",
+    "bounded_timeout_and_modal_update": "experiments/0033-bounded-timeouts-and-modal-focus.md; backed-up offline locked CLI replacement, shared remaining300s lifecycle budget, safe endpoint/stage timeout labels and dimmed modal backdrop;41 mocked Python/62 Rust tests and full release/installed fake-transport PTY, no actual inference/private diff retry, long-context quality/performance and hidden-summary refusal unchanged",
+    "fresh_proof": "local-subject-proof-0001",
+    "reused_development_cases": 20,
+    "usable": 18,
+    "needs_edit": 2,
+    "misleading": 0,
+    "faithful_synthetic_core_cases": 12,
+    "interpretation_sensitive_development_judgments": 7,
+    "independent_human_annotation": false,
+    "population_accuracy_established": false,
+    "cpu_latency_ram_and_rust_integration": "Experimental Rust dashboard staged-only m action verified on synthetic fixtures with actual Windows CPU bridge and separately approved Mac ARM64 full-TUI inference/edit/stale/cancel/exit proof. See experiments/0021-pushtrack-local-drafts.md and0024-mac-native-drafts.md. One Mac example17.77s/5.99GB sampled aggregateRSS is not broad performance/accuracy or Linux deployment proof."
+  }
+}

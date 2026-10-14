@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "id": "qwen35-4b-q4km-v2",
+  "name": "Qwen3.5-4B Q4_K_M",
+  "filename": "Qwen3.5-4B-Q4_K_M.gguf",
+  "bytes": 2740937888,
+  "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+  "license": "Apache-2.0",
+  "publisher": "Unsloth, not official Qwen GGUF",
+  "release_tag": "model-qwen35-4b-q4km-v2",
+  "repository": "TemelGunaydin/PushTrack",
+  "parts": [
+    {
+      "name": "Qwen3.5-4B-Q4_K_M.gguf.part01",
+      "bytes": 536870912,
+      "sha256": "c9f596d4db048ad6b9fddb9c81542a8f74b7023f89e551796747409223ed0f27"
+    },
+    {
+      "name": "Qwen3.5-4B-Q4_K_M.gguf.part02",
+      "bytes": 536870912,
+      "sha256": "d4683c1a051fbad1071397247cdf20a9f6c9242f2a40be85d5298758aa32bcb0"
+    },
+    {
+      "name": "Qwen3.5-4B-Q4_K_M.gguf.part03",
+      "bytes": 536870912,
+      "sha256": "dfcda192091e6809ad72e54f851d5e8eccfa4eca58d41e9e0930530e2f791150"
+    },
+    {
+      "name": "Qwen3.5-4B-Q4_K_M.gguf.part04",
+      "bytes": 536870912,
+      "sha256": "ee20ae52be3a3b230f43554e05bf5ee41e21b618c6ceb896e5e43b8a7ed46739"
+    },
+    {
+      "name": "Qwen3.5-4B-Q4_K_M.gguf.part05",
+      "bytes": 536870912,
+      "sha256": "58ea3d3c163b527326662ca994c23a4e6fda737084f79c8a9fed308669c4058f"
+    },
+    {
+      "name": "Qwen3.5-4B-Q4_K_M.gguf.part06",
+      "bytes": 56583328,
+      "sha256": "0bc74dd6f897128ddf6b9bee76027211be0255dcc18031282d9c1e583b83d5fb"
+    }
+  ],
+  "notices": [
+    {
+      "name": "LICENSE.txt",
+      "bytes": 11544,
+      "sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a"
+    },
+    {
+      "name": "UPSTREAM-QWEN-MODEL-CARD.md",
+      "bytes": 77661,
+      "sha256": "1406be1b6b8fd8a6545870da516912804756593628a1d0fb0a7965211e82a7bb"
+    },
+    {
+      "name": "UPSTREAM-UNSLOTH-MODEL-CARD.md",
+      "bytes": 78906,
+      "sha256": "28546f5fc4f22ee1b3f17b908957f17fcfa66174032136265bdb27f404bc1e6c"
+    },
+    {
+      "name": "NOTICE.md",
+      "bytes": 1295,
+      "sha256": "a30638709bd90284d27fd485a47b3aaa9f91eff756b1808c2460f3156c689413"
+    }
+  ]
+}

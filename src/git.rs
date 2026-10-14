@@ -1,33 +1,17 @@
 use crate::model::{Report, Snapshot, Verification};
+pub use crate::process::Output;
 use anyhow::{Context, Result, bail};
-use nix::{
-    sys::signal::{Signal, killpg},
-    unistd::Pid,
-};
 use std::{
-    fs::File,
-    io::{Read, Seek, SeekFrom},
-    os::unix::process::CommandExt,
     path::Path,
-    process::{Child, Command, ExitStatus, Stdio},
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
-    thread,
-    time::{Duration, Instant, SystemTime},
+    process::Command,
+    sync::{Arc, atomic::AtomicBool},
+    time::{Duration, SystemTime},
 };
 
 #[derive(Clone)]
 pub struct Git {
     pub cancel: Arc<AtomicBool>,
     pub timeout: Duration,
-}
-
-pub struct Output {
-    pub status: ExitStatus,
-    pub stdout: Vec<u8>,
-    pub stderr: String,
 }
 
 impl Default for Git {
@@ -39,46 +23,20 @@ impl Default for Git {
     }
 }
 
-struct RunningChild {
-    child: Child,
-    active: bool,
-}
-impl RunningChild {
-    fn stop(&mut self) {
-        let group = Pid::from_raw(self.child.id() as i32);
-        let _ = killpg(group, Signal::SIGTERM);
-        thread::sleep(Duration::from_millis(50));
-        let _ = killpg(group, Signal::SIGKILL);
-        let _ = self.child.wait();
-        self.active = false;
-    }
-}
-impl Drop for RunningChild {
-    fn drop(&mut self) {
-        if self.active {
-            self.stop();
-        }
-    }
-}
-
 impl Git {
     pub fn run(&self, path: &Path, args: &[&str]) -> Result<Output> {
-        if self.cancel.load(Ordering::Relaxed) {
-            bail!("Cancelled");
-        }
-        let mut stdout = tempfile::tempfile()?;
-        let mut stderr = tempfile::tempfile()?;
+        self.run_bounded(path, args, None)
+    }
+
+    pub fn run_bounded(&self, path: &Path, args: &[&str], cap: Option<u64>) -> Result<Output> {
         let mut command = Command::new("git");
         command
             .args(["-c", "core.fsmonitor=false", "-c", "color.ui=false"])
             .args(args)
             .current_dir(path)
-            .stdin(Stdio::null())
-            .stdout(stdout.try_clone()?)
-            .stderr(stderr.try_clone()?)
-            .process_group(0)
             .env("LC_ALL", "C")
             .env("GIT_OPTIONAL_LOCKS", "0")
+            .env("GIT_NO_LAZY_FETCH", "1")
             .env("GIT_TERMINAL_PROMPT", "0")
             .env("GCM_INTERACTIVE", "never")
             .env("GIT_ASKPASS", "/usr/bin/false")
@@ -94,35 +52,14 @@ impl Git {
         ] {
             command.env_remove(key);
         }
-        let child = command
-            .spawn()
-            .context("Could not start git; check that Git is installed and on PATH")?;
-        let mut running = RunningChild {
-            child,
-            active: true,
-        };
-        let start = Instant::now();
-        let status = loop {
-            if let Some(status) = running.child.try_wait()? {
-                running.active = false;
-                break status;
-            }
-            if self.cancel.load(Ordering::Relaxed) {
-                bail!("Cancelled");
-            }
-            if start.elapsed() >= self.timeout {
-                bail!(
-                    "Git operation timed out after {} seconds",
-                    self.timeout.as_secs()
-                );
-            }
-            thread::sleep(Duration::from_millis(5));
-        };
-        Ok(Output {
-            status,
-            stdout: read(&mut stdout)?,
-            stderr: String::from_utf8_lossy(&read(&mut stderr)?).into_owned(),
-        })
+        crate::process::run(
+            command,
+            None,
+            &self.cancel,
+            self.timeout,
+            cap,
+            "Git operation",
+        )
     }
 
     pub fn checked(&self, path: &Path, args: &[&str]) -> Result<Vec<u8>> {
@@ -243,13 +180,6 @@ impl Git {
         report.verification = Verification::Fetched(checked_at);
         Ok(())
     }
-}
-
-fn read(file: &mut File) -> Result<Vec<u8>> {
-    file.seek(SeekFrom::Start(0))?;
-    let mut bytes = Vec::new();
-    file.read_to_end(&mut bytes)?;
-    Ok(bytes)
 }
 
 #[derive(PartialEq, Eq)]

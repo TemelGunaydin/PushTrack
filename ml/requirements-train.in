@@ -1,0 +1,10 @@
+# Isolated Windows training environment; keep the CUDA proof/data envs unchanged.
+# setup-windows.ps1 selects only torch from the official cu130 index.
+--index-url https://pypi.org/simple
+-c requirements-data.lock
+
+torch==2.14.1+cu130
+transformers==5.18.0
+tokenizers==0.23.2
+numpy==2.5.3
+safetensors==0.8.0

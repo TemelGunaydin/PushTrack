@@ -7,7 +7,7 @@ use std::{io::IsTerminal, path::PathBuf};
     about = "Did you push it? Track all your Git projects in one place."
 )]
 #[command(
-    after_help = "Examples:\n  pushtrack add ~/Projects ~/Work\n  pushtrack --fetch --watch\n  pushtrack /path/to/repo\n\nWatch: arrows to select, Page Up/Down to scroll, Tab for details, r to refresh, q to quit.\nOnly the current branch's configured upstream is checked. No commits or pushes are performed."
+    after_help = "Examples:\n  pushtrack add ~/Projects ~/Work\n  pushtrack --fetch --watch\n  pushtrack /path/to/repo\n\nWatch: arrows to select, Page Up/Down to scroll, Tab for details, r to refresh, a for model selection/download, m for a staged-only editable local draft, q to quit.\nOnly the current branch's configured upstream is checked. No commits or pushes are performed."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -23,6 +23,8 @@ pub struct Cli {
     /// Color output (NO_COLOR disables automatic colors)
     #[arg(long, value_enum, default_value = "auto")]
     pub color: ColorMode,
+    #[command(flatten)]
+    pub local: crate::draft::LocalOptions,
 }
 
 #[derive(Debug, Subcommand)]
@@ -79,5 +81,23 @@ mod tests {
         assert_eq!(cli.paths, [PathBuf::from("-repo")]);
         assert!(Cli::try_parse_from(["pushtrack", "add"]).is_err());
         assert!(Cli::try_parse_from(["pushtrack", "--color", "purple"]).is_err());
+        assert!(Cli::try_parse_from(["pushtrack", "--ai-model", "model"]).is_err());
+        assert!(
+            Cli::try_parse_from(["pushtrack", "--ai-model", "model", "--ai-server", "server"])
+                .is_err()
+        );
+        let cli = Cli::try_parse_from([
+            "pushtrack",
+            "--watch",
+            "--ai-model",
+            "model",
+            "--ai-server",
+            "server",
+            "--ai-python",
+            "python3",
+        ])
+        .unwrap();
+        assert_eq!(cli.local.ai_model, Some("model".into()));
+        assert!(Cli::try_parse_from(["pushtrack", "--watch", "--ai-server", "server"]).is_ok());
     }
 }

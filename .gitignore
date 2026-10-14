@@ -1,5 +1,17 @@
 /target/
+*.gguf
+*.gguf.part*
+*.partial
 __pycache__/
+.venv/
+.venv-data/
+.venv-train/
+/ml/.cache/
+/ml/.tmp/
+/ml/data/
+/ml/runs/
+/ml/checkpoints/
+/ml/exports/
 .build/
 .swiftpm/
 .DS_Store

@@ -1,0 +1,5 @@
+# Environment proof only; no model, tokenizer, or dataset dependencies yet.
+# Official Windows x64 / CPython 3.12 / CUDA 13.0 build.
+--index-url https://download.pytorch.org/whl/cu130
+
+torch==2.14.1+cu130
